@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # 1. تطبيق الويب (Flask)
+  web:
+    build: .
+    container_name: flask_web_app
+    ports:
+      - "5000:5000"
+    volumes:
+      # Bind Mount: ربط المجلد الحالي بداخل Container عشان الـ Live Reload يشتغل
+      - .:/app
+    environment:
+      - FLASK_ENV=development
+      - DB_HOST=postgres_db
+      - POSTGRES_DB=app_db
+      - POSTGRES_USER=mahmoud
+      - POSTGRES_PASSWORD=secret123
+    depends_on:
+      - redis
+      - postgres_db
+
+  # 2. خدمة Redis (In-Memory Data Store)
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+
+  # 3. خدمة PostgreSQL (Persistent Database)
+  postgres_db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: mahmoud
+      POSTGRES_PASSWORD: secret123
+    ports:
+      - "5432:5432"
+    volumes:
+      # Named Volume للحفاظ على داتا الداتابيز حتى لو الـ Container اتمسحت
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
